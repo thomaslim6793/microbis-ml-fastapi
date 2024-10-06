@@ -2,3 +2,4 @@ test_sets/
 train_sets/
 models/
 microbis_ml_backend.pem
+.env

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import numpy as np
 from joblib import load
@@ -6,6 +7,8 @@ import pickle
 from typing import List, Dict
 import pandas as pd
 import json
+import os
+from dotenv import load_dotenv
 
 class PredictionRequest(BaseModel):
     requested_model: str  # Changed from model_name to requested_model
@@ -46,7 +49,20 @@ def load_categories_for_model(model_name):
     return categories
 
 #### APP ####
+# Load environment variables
+load_dotenv()
+
+# Access the FRONTEND_URL environment variable
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')  # Default to 'http://localhost:5173' if not set
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[FRONTEND_URL],  # Use the value from the environment variable
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/predict", response_model=PredictionResponse)
 def make_prediction(request: PredictionRequest):
@@ -78,36 +94,18 @@ def make_prediction(request: PredictionRequest):
     
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+# New route to get category information for a model
+@app.get("/categories/{model_name}")
+def get_categories(model_name: str):
+    try:
+        categories = load_categories_for_model(model_name)
+        return categories
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Multi-Model Prediction API"}
-
-
-# # Sample JSON input that you would normally send to the /predict endpoint
-# print("Testing with an example that is initially a JSON input or a dict and converting it into a DataFrame")
-# sample_input = {
-#   "requested_model": "gene_mult_classification_best",
-#   "data": [
-#     {
-#       "Phenotype": "ESBL",
-#       "Species": "Klebsiella pneumoniae",
-#       "Family": "Enterobacteriaceae",
-#       "Country": "Portugal",
-#       "State": None,
-#       "Gender": "Male",
-#       "Age Group": "65 to 84 Years",
-#       "Speciality": "Medicine ICU",
-#       "Source": "Sputum",
-#       "In / Out Patient": "Inpatient",
-#       "Year": 2012,
-#       "gene": "TEM"
-#   }
-#   ]
-# }
-
-# # Simulate the incoming request
-# request = PredictionRequest(**sample_input)
-# # Call the make_prediction function directly
-# response = make_prediction(request)
-# print(response)

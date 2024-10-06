@@ -389,7 +389,7 @@ Details about the input features expected by the models.
 
 ```json
 {
-  "requested_model": "gene_bin_classification_best",
+  "requested_model": "`gene_bin_classification_best`",
   "data": [
     {
       "Phenotype": null,
