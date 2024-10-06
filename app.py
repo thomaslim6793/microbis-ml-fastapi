@@ -52,6 +52,8 @@ def load_categories_for_model(model_name):
 # Load environment variables
 load_dotenv()
 
+app = FastAPI()
+
 # Access the FRONTEND_URL environment variable and allow multiple origins
 frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 origins = [
