@@ -52,13 +52,16 @@ def load_categories_for_model(model_name):
 # Load environment variables
 load_dotenv()
 
-# Access the FRONTEND_URL environment variable
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')  # Default to 'http://localhost:5173' if not set
-app = FastAPI()
+# Access the FRONTEND_URL environment variable and allow multiple origins
+frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+origins = [
+    frontend_url,            # The frontend URL from .env
+    "http://52.14.24.164:5001",  # Your MERN app's URL in EC2
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL],  # Use the value from the environment variable
+    allow_origins=origins,  # Use the list of allowed origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
